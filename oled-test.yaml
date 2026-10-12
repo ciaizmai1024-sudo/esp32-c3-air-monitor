@@ -1,0 +1,41 @@
+esphome:
+  name: oled-test
+  friendly_name: OLED Test
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+
+api:
+
+ota:
+  platform: esphome
+
+
+i2c:
+  sda: GPIO10
+  scl: GPIO8
+  scan: true
+
+
+font:
+  - file: "fonts/DejaVuSans.ttf"
+    id: font1
+    size: 16
+
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    address: 0x3C
+
+    lambda: |-
+      it.print(0, 0, id(font1), "Hello");
+      it.print(0, 25, id(font1), "ESP32-C3");

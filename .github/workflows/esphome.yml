@@ -1,0 +1,79 @@
+name: ESPHome CI
+
+on:
+  push:
+    paths:
+      - "**.yaml"
+      - "fonts/**"
+      - ".github/workflows/esphome.yml"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 与本地已验证的固件版本保持一致；升级时改这里即可
+  ESPHOME_VERSION: 2026.8.2
+
+jobs:
+  build:
+    name: Build ${{ matrix.config }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - air-monitor.yaml
+          - oled-test.yaml
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # secrets.yaml 被 .gitignore 忽略，CI 里从仓库 Secrets 重建
+      # （未配置 Secrets 时回退到默认值，保证 CI 可跑通）
+      - name: Create secrets.yaml
+        run: |
+          cat > secrets.yaml <<EOF
+          wifi_ssid: "${{ secrets.WIFI_SSID || '123' }}"
+          wifi_password: "${{ secrets.WIFI_PASSWORD || 'zzz888ZZZ' }}"
+          ap_password: "${{ secrets.AP_PASSWORD || '12345678' }}"
+          EOF
+
+      - name: Compile ${{ matrix.config }}
+        id: build
+        uses: esphome/build-action@v8.1.0
+        with:
+          yaml-file: ${{ matrix.config }}
+          version: ${{ env.ESPHOME_VERSION }}
+          complete-manifest: true
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.name }}
+          path: |
+            ${{ steps.build.outputs.name }}/
+          if-no-files-found: error
+
+  # 打 tag（如 v1.0.0）推送时，自动把固件发布到 GitHub Release
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: firmware
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: firmware/**/*
+          fail_on_unmatched_files: true
