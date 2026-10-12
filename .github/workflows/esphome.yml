@@ -26,7 +26,6 @@ jobs:
       matrix:
         config:
           - air-monitor.yaml
-          - oled-test.yaml
 
     steps:
       - name: Checkout

@@ -4,8 +4,7 @@ ESPHome 固件配置仓库，可用 **GitHub Actions 自动构建**，也可本�
 
 | 配置文件 | 说明 | 硬件 |
 | --- | --- | --- |
-| `air-monitor.yaml` | 主固件：PM2.5/PM10/甲醛/温湿度 + OLED 三页轮播 + Web 服务器 | ESP32-C3 + PMS5003ST + SH1106 128x64 |
-| `oled-test.yaml` | OLED 点灯冒烟测试 | ESP32-C3 + SH1106 |
+| `air-monitor.yaml` | 固件：PM2.5/PM10/甲醛/温湿度 + OLED 三页轮播 + Web 服务器 | ESP32-C3 + PMS5003ST + SH1106 128x64 |
 
 - ESPHome 版本：**2026.8.2**（CI 与本地保持一致）
 - 平台：`esp32-c3-devkitm-1`，framework `arduino`（ESP-IDF 5.5.5 工具链）
@@ -19,13 +18,12 @@ ESPHome 固件配置仓库，可用 **GitHub Actions 自动构建**，也可本�
 | OLED I2C SDA / SCL | GPIO6 / GPIO7 |
 
 > 注意：ESP32-C3 的 GPIO2 / GPIO8 / GPIO9 是 strapping 引脚，尽量避免用作 I2C。
-> `oled-test.yaml` 目前用的是 GPIO10 / GPIO8，与主配置不一致，接线前请确认实物。
 
 ## GitHub Actions 自动构建
 
 工作流：`.github/workflows/esphome.yml`（官方 action `esphome/build-action@v8.1.0`，Docker 镜像 `ghcr.io/esphome/esphome`）
 
-- **push / PR / 手动触发**：矩阵编译两个 yaml，产物以 `<name>-<platform>` 命名的 artifact 提供（含 `.bin`、`manifest.json`、`.elf`）
+- **push / PR / 手动触发**：编译 `air-monitor.yaml`，产物以 `<name>-<platform>` 命名的 artifact 提供（含 `.bin`、`manifest.json`、`.elf`）
 - **打 tag 推送**（如 `git tag v1.0.0 && git push --tags`）：自动发布到 GitHub Release
 
 触发方式：
@@ -69,8 +67,7 @@ esphome dashboard .                  # 网页版编辑器
 ## 目录说明
 
 ```
-air-monitor.yaml      主固件配置
-oled-test.yaml        OLED 测试配置
+air-monitor.yaml      固件配置
 secrets.yaml          本地凭据（不入库）
 fonts/DejaVuSans.ttf  OLED 字体（跨平台，勿用 C:/Windows/Fonts 绝对路径）
 .esphome/             构建缓存（不入库）
